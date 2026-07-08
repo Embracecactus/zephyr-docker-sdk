@@ -1,0 +1,20 @@
+# Local Zephyr workspaces and build output
+workspace/
+out/
+build/
+**/build/
+
+# SDK cache archives are large and should not be committed
+cache/*.tar.xz
+!cache/.gitkeep
+
+# Python / editor / OS noise
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Local environment overrides
+.env
