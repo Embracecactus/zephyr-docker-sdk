@@ -8,6 +8,24 @@ This project builds a reusable Zephyr SDK Docker image. Project-specific workspa
 
 This project is community-maintained and is not affiliated with the official Zephyr project Docker images.
 
+## Quick start: Pull pre-built image
+
+You can pull the pre-built image directly from Alibaba Cloud ACR without building:
+
+```bash
+docker pull crpi-njzo90d6qanuirs8.cn-hangzhou.personal.cr.aliyuncs.com/lijian_docker/zephyr-docker-sdk:v1.0
+```
+
+Or tag it locally for use with compose:
+
+```bash
+docker tag crpi-njzo90d6qanuirs8.cn-hangzhou.personal.cr.aliyuncs.com/lijian_docker/zephyr-docker-sdk:v1.0 zephyr-docker-sdk:1.0.1
+```
+
+Then use it with your Zephyr workspace as described in [Use the image with a Zephyr workspace](#use-the-image-with-a-zephyr-workspace).
+
+---
+
 ## English
 
 ### Features
@@ -221,6 +239,24 @@ It only contains Docker build and Compose files.
 本项目只负责构建可复用的 Zephyr SDK Docker 镜像。具体项目的 workspace 挂载、`ZEPHYR_BASE`、额外 volume 应该写在项目自己的 `compose.yaml` 中，或者基于 `docker-compose.example.yml` 模板修改。
 
 本项目由社区维护，不隶属于 Zephyr 官方 Docker 镜像项目。
+
+### 快速开始：拉取预构建镜像
+
+可以直接从阿里云 ACR 拉取预构建镜像，无需本地构建：
+
+```bash
+docker pull crpi-njzo90d6qanuirs8.cn-hangzhou.personal.cr.aliyuncs.com/lijian_docker/zephyr-docker-sdk:v1.0
+```
+
+如需在本地 compose 中使用，可打标签：
+
+```bash
+docker tag crpi-njzo90d6qanuirs8.cn-hangzhou.personal.cr.aliyuncs.com/lijian_docker/zephyr-docker-sdk:v1.0 zephyr-docker-sdk:1.0.1
+```
+
+然后按 [在 Zephyr workspace 中使用镜像](#在-zephyr-workspace-中使用镜像) 章节配置你的项目。
+
+---
 
 ### 功能特性
 
