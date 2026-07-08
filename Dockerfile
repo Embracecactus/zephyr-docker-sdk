@@ -99,7 +99,7 @@ RUN <<EOF
 	source ${PYTHON_VENV_PATH}/bin/activate
 	python3 -m pip install --upgrade pip setuptools wheel
 	python3 -m pip config set global.index-url https://pypi.tuna.tsinghua.edu.cn/simple
-	python3 -m pip install west pyelftools pyyaml packaging canopen anytree junitparser
+	python3 -m pip install west pyelftools pyyaml packaging canopen anytree junitparser jsonschema
 EOF
 
 COPY cache/ /tmp/zephyr-sdk-cache/

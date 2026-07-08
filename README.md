@@ -18,6 +18,7 @@ This project is community-maintained and is not affiliated with the official Zep
 - Optional local SDK archive cache for slow networks
 - Docker Compose workflow with persistent ccache
 - Project workspace configuration kept outside the image
+- Pre-installed Python dependencies for Zephyr builds: west, pyelftools, pyyaml, jsonschema, packaging, etc.
 - Optional Python requirements sync from `$ZEPHYR_BASE/scripts/requirements.txt`
 
 ### Repository model
@@ -229,6 +230,7 @@ It only contains Docker build and Compose files.
 - 支持本地 SDK 压缩包缓存，适合网络较慢或 GitHub 下载不稳定的环境
 - 使用 Docker Compose 管理镜像构建，并持久化 ccache
 - 项目 workspace 配置不写死在镜像中
+- 预装 Zephyr 构建所需的 Python 依赖：west、pyelftools、pyyaml、jsonschema、packaging 等
 - 可选地从 `$ZEPHYR_BASE/scripts/requirements.txt` 同步 Python 依赖
 
 ### 仓库定位
