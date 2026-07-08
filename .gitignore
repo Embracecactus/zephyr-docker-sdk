@@ -4,8 +4,17 @@ out/
 build/
 **/build/
 
-# SDK cache archives are large and should not be committed
+# SDK archives and Docker image exports are large and should not be committed
 cache/*.tar.xz
+*.tar
+*.tar.gz
+*.tar.bz2
+*.tar.xz
+*.zip
+*.img
+*.bin
+*.hex
+*.uf2
 !cache/.gitkeep
 
 # Python / editor / OS noise

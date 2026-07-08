@@ -2,7 +2,9 @@
 
 English | [简体中文](#简体中文)
 
-A lightweight Docker/Compose environment for building Zephyr projects with configurable Zephyr SDK versions.
+A lightweight Docker image build project for Zephyr SDK based development environments.
+
+This project builds a reusable Zephyr SDK Docker image. Project-specific workspace mounts, `ZEPHYR_BASE`, and extra volumes should be defined in your own `compose.yaml`, or by using `docker-compose.example.yml` as a template.
 
 This project is community-maintained and is not affiliated with the official Zephyr project Docker images.
 
@@ -15,44 +17,74 @@ This project is community-maintained and is not affiliated with the official Zep
 - Configurable SDK version, SDK toolchains, and base image
 - Optional local SDK archive cache for slow networks
 - Docker Compose workflow with persistent ccache
-- Automatic Python requirements sync from `$ZEPHYR_BASE/scripts/requirements.txt`
+- Project workspace configuration kept outside the image
+- Optional Python requirements sync from `$ZEPHYR_BASE/scripts/requirements.txt`
 
-### Quick start
+### Repository model
+
+This repository is responsible for the generic image:
+
+```text
+Dockerfile + entrypoint.sh + image build compose
+```
+
+Your Zephyr project is responsible for the runtime workspace mapping:
+
+```text
+project compose.yaml -> ZEPHYR_WORKSPACE / ZEPHYR_BASE / project volumes
+```
+
+This keeps the image reusable across boards, SoCs, forks, and workspaces.
+
+### Build the generic image
 
 ```bash
 git clone https://github.com/Embracecactus/zephyr-docker-sdk.git
 cd zephyr-docker-sdk
 ```
 
-Set your Zephyr workspace path. For example, if your host workspace is `/path/to/zephyr-workspace` and the Zephyr repository inside it is named `zephyr`:
-
-```bash
-export ZEPHYR_WORKSPACE=/path/to/zephyr-workspace
-export ZEPHYR_BASE=/workspace/zephyr-workspace/zephyr
-```
-
-If your repository directory has a different name, set `ZEPHYR_BASE` accordingly, for example `/workspace/zephyr-workspace/<zephyr-repo-dir>`.
-
-For a standard workspace with a `zephyr` repository, you can omit `ZEPHYR_BASE` and use the default:
-
-```text
-/workspace/zephyr-workspace/zephyr
-```
-
-Build the image:
+Build the default image:
 
 ```bash
 docker compose build
 ```
 
-Start and enter the container:
+This produces an image like:
 
-```bash
-docker compose up -d
-docker compose exec zephyr-sdk bash
+```text
+zephyr-docker-sdk:1.0.1
 ```
 
-Verify inside the container:
+Start a plain shell from the generic image:
+
+```bash
+docker compose run --rm zephyr-sdk bash
+```
+
+### Use the image with a Zephyr workspace
+
+Copy the example compose file into your own Zephyr project, or run it directly with environment variables:
+
+```bash
+cp .env.example .env
+cp docker-compose.example.yml compose.yaml
+```
+
+Edit `.env` for your project:
+
+```text
+ZEPHYR_WORKSPACE=/path/to/zephyr-workspace
+ZEPHYR_BASE=/workspace/zephyr-workspace/zephyr
+```
+
+Then start the project container:
+
+```bash
+docker compose -f compose.yaml up -d
+docker compose -f compose.yaml exec zephyr-sdk bash
+```
+
+Inside the container:
 
 ```bash
 echo $ZEPHYR_BASE
@@ -62,7 +94,7 @@ west --version
 arm-zephyr-eabi-gcc --version
 ```
 
-Build a Zephyr sample inside the container:
+Build a Zephyr sample:
 
 ```bash
 cd $ZEPHYR_BASE
@@ -91,7 +123,7 @@ Do not commit SDK archives. `.gitignore` excludes `cache/*.tar.xz`; only `cache/
 
 ### Configuration
 
-You can override these variables:
+Image build variables:
 
 | Variable | Default | Description |
 |---|---|---|
@@ -99,19 +131,31 @@ You can override these variables:
 | `ZSDK_VERSION` | `1.0.1` | Zephyr SDK version. |
 | `SDK_TOOLCHAINS` | `all` | Toolchains installed by `setup.sh -t`. Use `arm-zephyr-eabi` for smaller ARM-only images. |
 | `HOSTTYPE` | `x86_64` | Host architecture used in the SDK archive name. |
-| `ZEPHYR_WORKSPACE` | `./workspace` | Host path mounted to `/workspace/zephyr-workspace`. |
-| `ZEPHYR_BASE` | `/workspace/zephyr-workspace/zephyr` | Zephyr repository path inside the container. |
-| `SKIP_ZEPHYR_PIP_SYNC` | `0` | Set to `1` to skip automatic `pip install -r $ZEPHYR_BASE/scripts/requirements.txt`. |
+| `IMAGE_NAME` | `zephyr-docker-sdk` | Output image name. |
 
-Example:
+Project runtime variables used by `docker-compose.example.yml`:
+
+| Variable | Example | Description |
+|---|---|---|
+| `ZEPHYR_WORKSPACE` | `/path/to/zephyr-workspace` | Host workspace mounted to `/workspace/zephyr-workspace`. |
+| `ZEPHYR_BASE` | `/workspace/zephyr-workspace/zephyr` | Zephyr repository path inside the container. |
+| `SYNC_ZEPHYR_REQUIREMENTS` | `1` | Set to `1` to install `$ZEPHYR_BASE/scripts/requirements.txt` at container startup. |
+
+Example image build:
 
 ```bash
 BASE_IMAGE=ubuntu:24.04 \
 ZSDK_VERSION=1.0.1 \
 SDK_TOOLCHAINS=arm-zephyr-eabi \
+docker compose build
+```
+
+Example project run:
+
+```bash
 ZEPHYR_WORKSPACE=/path/to/zephyr-workspace \
 ZEPHYR_BASE=/workspace/zephyr-workspace/zephyr \
-docker compose build
+docker compose -f docker-compose.example.yml up -d
 ```
 
 ### Common issues
@@ -171,7 +215,9 @@ It only contains Docker build and Compose files.
 
 ## 简体中文
 
-一个轻量级 Docker/Compose 环境，用于基于 Zephyr SDK 构建 Zephyr 项目，并支持自定义 Zephyr SDK 版本。
+一个轻量级 Docker 镜像构建项目，用于创建基于 Zephyr SDK 的开发环境。
+
+本项目只负责构建可复用的 Zephyr SDK Docker 镜像。具体项目的 workspace 挂载、`ZEPHYR_BASE`、额外 volume 应该写在项目自己的 `compose.yaml` 中，或者基于 `docker-compose.example.yml` 模板修改。
 
 本项目由社区维护，不隶属于 Zephyr 官方 Docker 镜像项目。
 
@@ -181,42 +227,72 @@ It only contains Docker build and Compose files.
 - 默认使用 Zephyr SDK 1.0.1
 - 支持配置 SDK 版本、安装的 SDK toolchains、基础镜像
 - 支持本地 SDK 压缩包缓存，适合网络较慢或 GitHub 下载不稳定的环境
-- 使用 Docker Compose 管理开发容器，并持久化 ccache
-- 容器启动时可自动同步 `$ZEPHYR_BASE/scripts/requirements.txt` 中的 Python 依赖
+- 使用 Docker Compose 管理镜像构建，并持久化 ccache
+- 项目 workspace 配置不写死在镜像中
+- 可选地从 `$ZEPHYR_BASE/scripts/requirements.txt` 同步 Python 依赖
 
-### 快速开始
+### 仓库定位
+
+本仓库负责通用镜像：
+
+```text
+Dockerfile + entrypoint.sh + 镜像构建 compose
+```
+
+你的 Zephyr 项目负责运行时 workspace 映射：
+
+```text
+项目 compose.yaml -> ZEPHYR_WORKSPACE / ZEPHYR_BASE / 项目 volume
+```
+
+这样同一个镜像可以复用于不同开发板、SoC、fork 和 workspace。
+
+### 构建通用镜像
 
 ```bash
 git clone https://github.com/Embracecactus/zephyr-docker-sdk.git
 cd zephyr-docker-sdk
 ```
 
-设置你的 Zephyr 工作区路径。比如宿主机工作区是 `/path/to/zephyr-workspace`，里面的 Zephyr 仓库名是 `zephyr`：
-
-```bash
-export ZEPHYR_WORKSPACE=/path/to/zephyr-workspace
-export ZEPHYR_BASE=/workspace/zephyr-workspace/zephyr
-```
-
-如果你的仓库目录不是 `zephyr`，请按实际目录名设置 `ZEPHYR_BASE`，例如 `/workspace/zephyr-workspace/<zephyr-repo-dir>`。
-
-如果你的工作区里 Zephyr 仓库名就是标准的 `zephyr`，可以不设置 `ZEPHYR_BASE`，默认值是：
-
-```text
-/workspace/zephyr-workspace/zephyr
-```
-
-构建镜像：
+构建默认镜像：
 
 ```bash
 docker compose build
 ```
 
-启动并进入容器：
+会生成类似下面的镜像：
+
+```text
+zephyr-docker-sdk:1.0.1
+```
+
+从通用镜像启动一个普通 shell：
 
 ```bash
-docker compose up -d
-docker compose exec zephyr-sdk bash
+docker compose run --rm zephyr-sdk bash
+```
+
+### 在 Zephyr workspace 中使用镜像
+
+把示例 compose 复制到你自己的 Zephyr 项目中，或者直接通过环境变量运行：
+
+```bash
+cp .env.example .env
+cp docker-compose.example.yml compose.yaml
+```
+
+按你的项目修改 `.env`：
+
+```text
+ZEPHYR_WORKSPACE=/path/to/zephyr-workspace
+ZEPHYR_BASE=/workspace/zephyr-workspace/zephyr
+```
+
+然后启动项目容器：
+
+```bash
+docker compose -f compose.yaml up -d
+docker compose -f compose.yaml exec zephyr-sdk bash
 ```
 
 在容器内验证环境：
@@ -229,7 +305,7 @@ west --version
 arm-zephyr-eabi-gcc --version
 ```
 
-在容器内构建 Zephyr 示例：
+构建 Zephyr 示例：
 
 ```bash
 cd $ZEPHYR_BASE
@@ -258,7 +334,7 @@ docker compose build
 
 ### 配置项
 
-可以通过环境变量覆盖这些默认值：
+镜像构建变量：
 
 | 变量 | 默认值 | 说明 |
 |---|---|---|
@@ -266,19 +342,31 @@ docker compose build
 | `ZSDK_VERSION` | `1.0.1` | Zephyr SDK 版本。 |
 | `SDK_TOOLCHAINS` | `all` | `setup.sh -t` 安装的 toolchains。只做 ARM 构建时可用 `arm-zephyr-eabi` 减小镜像体积。 |
 | `HOSTTYPE` | `x86_64` | SDK 压缩包文件名里的主机架构。 |
-| `ZEPHYR_WORKSPACE` | `./workspace` | 宿主机 Zephyr 工作区路径，挂载到容器内 `/workspace/zephyr-workspace`。 |
-| `ZEPHYR_BASE` | `/workspace/zephyr-workspace/zephyr` | 容器内 Zephyr 仓库路径。 |
-| `SKIP_ZEPHYR_PIP_SYNC` | `0` | 设置为 `1` 可跳过自动执行 `pip install -r $ZEPHYR_BASE/scripts/requirements.txt`。 |
+| `IMAGE_NAME` | `zephyr-docker-sdk` | 输出镜像名。 |
 
-示例：
+`docker-compose.example.yml` 使用的项目运行变量：
+
+| 变量 | 示例 | 说明 |
+|---|---|---|
+| `ZEPHYR_WORKSPACE` | `/path/to/zephyr-workspace` | 宿主机 Zephyr 工作区路径，挂载到容器内 `/workspace/zephyr-workspace`。 |
+| `ZEPHYR_BASE` | `/workspace/zephyr-workspace/zephyr` | 容器内 Zephyr 仓库路径。 |
+| `SYNC_ZEPHYR_REQUIREMENTS` | `1` | 设置为 `1` 时，容器启动时安装 `$ZEPHYR_BASE/scripts/requirements.txt`。 |
+
+构建镜像示例：
 
 ```bash
 BASE_IMAGE=ubuntu:24.04 \
 ZSDK_VERSION=1.0.1 \
 SDK_TOOLCHAINS=arm-zephyr-eabi \
+docker compose build
+```
+
+项目运行示例：
+
+```bash
 ZEPHYR_WORKSPACE=/path/to/zephyr-workspace \
 ZEPHYR_BASE=/workspace/zephyr-workspace/zephyr \
-docker compose build
+docker compose -f docker-compose.example.yml up -d
 ```
 
 ### 常见问题

@@ -24,7 +24,7 @@ ENV LC_ALL=en_US.UTF-8
 ENV ZSDK_VERSION=${ZSDK_VERSION}
 ENV ZEPHYR_TOOLCHAIN_VARIANT=zephyr
 ENV ZEPHYR_SDK_INSTALL_DIR=/opt/toolchains/zephyr-sdk-${ZSDK_VERSION}
-ENV ZEPHYR_BASE=/workspace/zephyr-workspace/zephyr
+ENV ZEPHYR_BASE=
 ENV PYTHON_VENV_PATH=${PYTHON_VENV_PATH}
 ENV PATH=${PYTHON_VENV_PATH}/bin:/opt/toolchains/zephyr-sdk-${ZSDK_VERSION}/bin:/opt/toolchains/zephyr-sdk-${ZSDK_VERSION}/arm-zephyr-eabi/bin:${PATH}
 
